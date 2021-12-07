@@ -64,13 +64,8 @@ namespace Neos_OpenSeeFace_Integration
 
 		public void RegisterInputs(InputInterface inputInterface)
 		{
-			// Does this post?
-			if (!wcfTracker.didLoad)
-			{
-				wcfTracker.Initialize();
-				wcfTracker.StartThread();
-			}
-
+			wcfTracker.Initialize();
+			wcfTracker.StartThread();
 			eyes = new Eyes(inputInterface, "OpenSeeFace Eye Tracking");
 			// mouth = new Mouth(inputInterface, "OpenSeeFace Mouth Tracking");
 		}
@@ -78,12 +73,15 @@ namespace Neos_OpenSeeFace_Integration
 		public void UpdateInputs(float deltaTime)
         {
 			/* TODO: Eye tracking "freezes" currently. This means the engine respects an eye tracker,
-			 * but I'm guessing it hangs as things like Pupil Dilation are not accounted for.
-			 * Stream Dummy Information!
+			 * But I'm guessing it hangs as things like Pupil Dilation are not accounted for.
+			 * Stream Dummy Information!?
 			 */
 
 			// This should be active at all times
 			// eyes.IsEyeTrackingActive = wcfTracker.lastWCFTData.IsFaceTracking;
+
+			// This is gonna break things...
+			wcfTracker.Update();
 
 			eyes.LeftEye.IsTracking = wcfTracker.lastWCFTData.IsFaceTracking;
 			eyes.RightEye.IsTracking = wcfTracker.lastWCFTData.IsFaceTracking;
