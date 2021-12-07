@@ -14,7 +14,7 @@ namespace NeosPimaxIntegration
 		public override void OnEngineInit()
 		{
 			// Harmony.DEBUG = true;
-			Harmony harmony = new Harmony("net.dfg.WCFace-Tracking");
+			Harmony harmony = new Harmony("net.dfgHiatus.Neos-WCFace-Integration");
 			harmony.PatchAll();
 		}
 
@@ -49,46 +49,52 @@ namespace NeosPimaxIntegration
 		public void CollectDeviceInfos(BaseX.DataTreeList list) // (dmx) do this later ... this should be fine
         {
 			DataTreeDictionary dataTreeDictionary = new DataTreeDictionary();
-			dataTreeDictionary.Add("Name", "Pimax Eye Tracking");
-			dataTreeDictionary.Add("Type", "Eye Tracking");
-			dataTreeDictionary.Add("Model", "Droolon Pi1");
+			dataTreeDictionary.Add("Name", "WCFace Eye and Face Tracking");
+			dataTreeDictionary.Add("Type", "Eye and Face Tracking");
+			dataTreeDictionary.Add("Model", "Webcamera");
 			list.Add(dataTreeDictionary);
 		}
 
 		public void RegisterInputs(InputInterface inputInterface)
 		{
-/*			// TODO
-			if (wcfTracker...)
+			if (!wcfTracker.didLoad)
 			{
 				wcfTracker.Initialize();
-			}*/
+			}
 
-			wcfTracker.Initialize();
 			eyes = new Eyes(inputInterface, "OpenSeeFace Eye Tracking");
 		}
 
 		public void UpdateInputs(float deltaTime)
         {
-			eyes.IsEyeTrackingActive = wcfTracker.lastWCFTData.IsFaceTracking;
+			// eyes.IsEyeTrackingActive = wcfTracker.lastWCFTData.IsFaceTracking;
 			eyes.LeftEye.IsTracking = wcfTracker.lastWCFTData.IsFaceTracking;
 			eyes.RightEye.IsTracking = wcfTracker.lastWCFTData.IsFaceTracking;
 			eyes.CombinedEye.IsTracking = wcfTracker.lastWCFTData.IsFaceTracking;
 
-			// eyes.LeftEye.Squeeze = wcfTracker.lastWCFTData.LeftEyebrowUpDown;
-			// eyes.LeftEye.Widen = wcfTracker.lastWCFTData.LeftEyebrowUpDown;
+			// TODO Remap
+			eyes.LeftEye.Squeeze = wcfTracker.lastWCFTData.LeftEyebrowUpDown;
+			eyes.RightEye.Squeeze = wcfTracker.lastWCFTData.RightEyebrowUpDown;
+			eyes.RightEye.Squeeze = MathX.Average(wcfTracker.lastWCFTData.LeftEyebrowUpDown,
+												  wcfTracker.lastWCFTData.RightEyebrowUpDown);
+
+			eyes.LeftEye.Widen = wcfTracker.lastWCFTData.LeftEyebrowUpDown;
+			eyes.RightEye.Widen = wcfTracker.lastWCFTData.RightEyebrowUpDown;
+			eyes.CombinedEye.Widen = MathX.Average(wcfTracker.lastWCFTData.LeftEyebrowUpDown,
+												   wcfTracker.lastWCFTData.RightEyebrowUpDown);
 
 			eyes.LeftEye.Openness = wcfTracker.lastWCFTData.LeftEyeBlink;
 			eyes.RightEye.Openness = wcfTracker.lastWCFTData.RightEyeBlink;
-
 			eyes.CombinedEye.Openness = MathX.Average(wcfTracker.lastWCFTData.LeftEyeBlink, 
 													  wcfTracker.lastWCFTData.RightEyeBlink);
 
-			// Sussy
+			// TODO Remap
 			// mouth.IsDeviceActive = wcfTracker.lastWCFTData.IsFaceTracking;
 			mouth.IsTracking = wcfTracker.lastWCFTData.IsFaceTracking;
 			mouth.JawOpen = wcfTracker.lastWCFTData.MouthOpen;
 			mouth.MouthLeftSmileFrown = wcfTracker.lastWCFTData.MouthWide;
 			mouth.MouthRightSmileFrown = wcfTracker.lastWCFTData.MouthWide;
+
 		}
 
 	}
