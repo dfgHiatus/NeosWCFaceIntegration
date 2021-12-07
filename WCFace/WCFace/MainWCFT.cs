@@ -41,7 +41,7 @@ namespace WCFace
                                                                  $"LUD:{data.LookUpDown},LLR:{data.LookLeftRight}";
         }
 
-        private void VerifyDeadThread()
+        public void VerifyDeadThread()
         {
             if (_worker != null)
             {
@@ -52,7 +52,7 @@ namespace WCFace
             _worker = null;
         }
 
-        private void VerifyClosedSocket()
+        public void VerifyClosedSocket()
         {
             if (cws != null)
             {
@@ -123,7 +123,7 @@ namespace WCFace
             _worker.Start();
         }
 
-        private static float ForceAboveNegativeBelowOne(float value)
+        public float ForceAboveNegativeBelowOne(float value)
         {
             float fTR = 0;
             if (value > 0)
@@ -137,46 +137,13 @@ namespace WCFace
             return fTR;
         }
 
-        private static float NegativeToPositive(float value)
+        public float NegativeToPositive(float value)
         {
             float fTR = 0;
             if (value < 0)
                 fTR = value * -1;
 
             return fTR;
-        }
-
-        private Eye MakeEye(string eye, WCFTData data)
-        {
-            float2 Look = new float2(data.LookLeftRight, data.LookUpDown);
-            float Openness = 0, Squeeze = 0, Widen = 0;
-            switch (eye.ToLower())
-            {
-                case "left":
-                    Openness = data.LeftEyeBlink;
-                    Widen = ForceAboveNegativeBelowOne(data.LeftEyebrowUpDown);
-                    Squeeze = NegativeToPositive(data.LeftEyebrowUpDown);
-                    break;
-                case "right":
-                    Openness = data.RightEyeBlink;
-                    Widen = ForceAboveNegativeBelowOne(data.RightEyebrowUpDown);
-                    Squeeze = NegativeToPositive(data.RightEyebrowUpDown);
-                    break;
-                case "combined":
-                    Openness = (data.LeftEyeBlink + data.RightEyeBlink) / 2;
-                    Widen = (ForceAboveNegativeBelowOne(data.LeftEyebrowUpDown) + ForceAboveNegativeBelowOne(data.RightEyebrowUpDown)) / 2;
-                    Squeeze = (NegativeToPositive(data.LeftEyebrowUpDown) + NegativeToPositive(data.RightEyebrowUpDown)) / 2;
-                    break;
-            }
-
-            // Change this to be a different namespace?
-            return new Eye()
-            {
-                Look = Look,
-                Openness = Openness,
-                Squeeze = Squeeze,
-                Widen = Widen
-            };
         }
 
         public void Update()
@@ -247,19 +214,9 @@ namespace WCFace
                     // Push data
                     lastWCFTData = newWCFTData;
 
-                    // Eye Data
-                    MakeEye("left", newWCFTData);
-                    MakeEye("right", newWCFTData);
-                    MakeEye("combined", newWCFTData);
-
-                    // Lip Data (it has to be faked)
-                    newWCFTData.MouthOpen;
-                    newWCFTData.MouthWide;
-                    newWCFTData.MouthWide;
-
                 }
-                else
-                    Warning("Invalid NeosWCFT data received! Data: " + lastData);
+                // else
+                    // Warning("Invalid NeosWCFT data received! Data: " + lastData);
             }
         }
 

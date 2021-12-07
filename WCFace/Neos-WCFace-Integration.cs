@@ -2,8 +2,9 @@
 using NeosModLoader;
 using FrooxEngine;
 using BaseX;
+using System;
 
-namespace NeosPimaxIntegration
+namespace Neos_OpenSeeFace_Integration
 {
 	public class Neos_OpenSeeFace_Integration : NeosMod
 	{
@@ -42,44 +43,59 @@ namespace NeosPimaxIntegration
 	class WCFaceInputDevice : IInputDriver
 	{
 		public Eyes eyes;
-		public Mouth mouth;
+		//public Mouth mouth;
 		public WCFace.MainWCFT wcfTracker = new WCFace.MainWCFT();
 		public int UpdateOrder => 100;
 
 		public void CollectDeviceInfos(BaseX.DataTreeList list) // (dmx) do this later ... this should be fine
         {
-			DataTreeDictionary dataTreeDictionary = new DataTreeDictionary();
-			dataTreeDictionary.Add("Name", "WCFace Eye and Face Tracking");
-			dataTreeDictionary.Add("Type", "Eye and Face Tracking");
-			dataTreeDictionary.Add("Model", "Webcamera");
-			list.Add(dataTreeDictionary);
+			DataTreeDictionary EyeDataTreeDictionary = new DataTreeDictionary();
+			EyeDataTreeDictionary.Add("Name", "WCFace Eye Tracking");
+			EyeDataTreeDictionary.Add("Type", "Eye Tracking");
+			EyeDataTreeDictionary.Add("Model", "Webcamera");
+			list.Add(EyeDataTreeDictionary);
+
+			//DataTreeDictionary MouthDataTreeDictionary = new DataTreeDictionary();
+			//MouthDataTreeDictionary.Add("Name", "WCFace Face Tracking");
+			//MouthDataTreeDictionary.Add("Type", "Face Tracking");
+			//MouthDataTreeDictionary.Add("Model", "Webcamera");
+			//list.Add(MouthDataTreeDictionary);
 		}
 
 		public void RegisterInputs(InputInterface inputInterface)
 		{
+			// Does this post?
 			if (!wcfTracker.didLoad)
 			{
 				wcfTracker.Initialize();
+				wcfTracker.StartThread();
 			}
 
 			eyes = new Eyes(inputInterface, "OpenSeeFace Eye Tracking");
+			// mouth = new Mouth(inputInterface, "OpenSeeFace Mouth Tracking");
 		}
 
 		public void UpdateInputs(float deltaTime)
         {
+			/* TODO: Eye tracking "freezes" currently. This means the engine respects an eye tracker,
+			 * but I'm guessing it hangs as things like Pupil Dilation are not accounted for.
+			 * Stream Dummy Information!
+			 */
+
+			// This should be active at all times
 			// eyes.IsEyeTrackingActive = wcfTracker.lastWCFTData.IsFaceTracking;
+
 			eyes.LeftEye.IsTracking = wcfTracker.lastWCFTData.IsFaceTracking;
 			eyes.RightEye.IsTracking = wcfTracker.lastWCFTData.IsFaceTracking;
 			eyes.CombinedEye.IsTracking = wcfTracker.lastWCFTData.IsFaceTracking;
 
-			// TODO Remap
-			eyes.LeftEye.Squeeze = wcfTracker.lastWCFTData.LeftEyebrowUpDown;
-			eyes.RightEye.Squeeze = wcfTracker.lastWCFTData.RightEyebrowUpDown;
+			eyes.LeftEye.Squeeze = wcfTracker.NegativeToPositive(wcfTracker.lastWCFTData.LeftEyebrowUpDown);
+			eyes.RightEye.Squeeze = wcfTracker.NegativeToPositive(wcfTracker.lastWCFTData.RightEyebrowUpDown);
 			eyes.RightEye.Squeeze = MathX.Average(wcfTracker.lastWCFTData.LeftEyebrowUpDown,
 												  wcfTracker.lastWCFTData.RightEyebrowUpDown);
 
-			eyes.LeftEye.Widen = wcfTracker.lastWCFTData.LeftEyebrowUpDown;
-			eyes.RightEye.Widen = wcfTracker.lastWCFTData.RightEyebrowUpDown;
+			eyes.LeftEye.Widen = wcfTracker.ForceAboveNegativeBelowOne(wcfTracker.lastWCFTData.LeftEyebrowUpDown);
+			eyes.RightEye.Widen = wcfTracker.ForceAboveNegativeBelowOne(wcfTracker.lastWCFTData.RightEyebrowUpDown);
 			eyes.CombinedEye.Widen = MathX.Average(wcfTracker.lastWCFTData.LeftEyebrowUpDown,
 												   wcfTracker.lastWCFTData.RightEyebrowUpDown);
 
@@ -88,14 +104,15 @@ namespace NeosPimaxIntegration
 			eyes.CombinedEye.Openness = MathX.Average(wcfTracker.lastWCFTData.LeftEyeBlink, 
 													  wcfTracker.lastWCFTData.RightEyeBlink);
 
-			// TODO Remap
+			// For now while we dummy test eyes
+
+			// This should be active at all times
 			// mouth.IsDeviceActive = wcfTracker.lastWCFTData.IsFaceTracking;
-			mouth.IsTracking = wcfTracker.lastWCFTData.IsFaceTracking;
-			mouth.JawOpen = wcfTracker.lastWCFTData.MouthOpen;
-			mouth.MouthLeftSmileFrown = wcfTracker.lastWCFTData.MouthWide;
-			mouth.MouthRightSmileFrown = wcfTracker.lastWCFTData.MouthWide;
+			// mouth.IsTracking = wcfTracker.lastWCFTData.IsFaceTracking;
+			// mouth.JawOpen = wcfTracker.lastWCFTData.MouthOpen;
+			// mouth.MouthLeftSmileFrown = MathX.Clamp01(wcfTracker.lastWCFTData.MouthWide);
+			// mouth.MouthRightSmileFrown = MathX.Clamp01(wcfTracker.lastWCFTData.MouthWide);
 
 		}
-
 	}
 }

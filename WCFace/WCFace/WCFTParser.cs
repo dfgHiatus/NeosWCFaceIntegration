@@ -1,8 +1,5 @@
 ﻿using System;
-using HarmonyLib;
 using NeosModLoader;
-using FrooxEngine;
-using BaseX;
 
 namespace WCFace
 {
@@ -67,18 +64,20 @@ namespace WCFace
                 val = phase3[index];
             else
                 val = input;
+
+            // Get 0Harmony in here...
             switch (Type.GetTypeCode(typeof(T)))
             {
                 case TypeCode.Boolean:
-                    try { valueToReturn = (T)Convert.ChangeType(val, typeof(T)); } catch (Exception e) { Error($"Failed to cast value: {val} with exception of: {e}"); }
-                    break;
+                    try { valueToReturn = (T)Convert.ChangeType(val, typeof(T)); } catch (Exception e) { } // Debug($"Failed to cast value: {val} with exception of: {e}"); }
+            break;
                 case TypeCode.Double:
-                    try { valueToReturn = (T)Convert.ChangeType(val, typeof(T)); } catch (Exception e) { Error($"Failed to cast value: {val} with exception of: {e}"); }
+                    try { valueToReturn = (T)Convert.ChangeType(val, typeof(T)); } catch (Exception e) { } // Error($"Failed to cast value: {val} with exception of: {e}"); }
                     break;
                 default:
                     if (typeof(T) == typeof(float))
                     {
-                        try { valueToReturn = (T)Convert.ChangeType(val, typeof(T)); } catch (Exception e) { Error($"Failed to cast value: {val} with exception of: {e}"); }
+                        try { valueToReturn = (T) Convert.ChangeType(val, typeof(T)); } catch (Exception e) { } // Error($"Failed to cast value: {val} with exception of: {e}"); }
                         break;
                     }
                     break;
