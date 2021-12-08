@@ -1,6 +1,7 @@
 ﻿using HarmonyLib;
 using NeosModLoader;
 using FrooxEngine;
+using FrooxEngine.CommonAvatar;
 using BaseX;
 using System;
 
@@ -11,7 +12,7 @@ namespace Neos_OpenSeeFace_Integration
 		public override string Name => "Neos-WCFace-Integration";
 		public override string Author => "dfgHiatus";
 		public override string Version => "1.0.0";
-		public override string Link => "https://github.com/dfgHiatus/https://github.com/dfgHiatus/Neos-OpenSeeFace-Integration/";
+		public override string Link => "https://github.com/dfgHiatus/Neos-OpenSeeFace-Integration/";
 		public override void OnEngineInit()
 		{
 			// Harmony.DEBUG = true;
