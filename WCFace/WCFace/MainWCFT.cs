@@ -215,7 +215,7 @@ namespace WCFace
                     lastWCFTData = newWCFTData;
 
                 }
-                // else
+                //else
                     // Warning("Invalid NeosWCFT data received! Data: " + lastData);
             }
         }
