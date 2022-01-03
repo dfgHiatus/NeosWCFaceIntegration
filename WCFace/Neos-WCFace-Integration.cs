@@ -1,9 +1,7 @@
 ﻿using HarmonyLib;
 using NeosModLoader;
 using FrooxEngine;
-using FrooxEngine.CommonAvatar;
 using BaseX;
-using System;
 
 namespace Neos_WCFace_Integration
 {
@@ -18,6 +16,9 @@ namespace Neos_WCFace_Integration
 		public override void OnEngineInit()
 		{
 			// Harmony.DEBUG = true;
+			wcfTracker = new WCFace.MainWCFT();
+			wcfTracker.Initialize();
+			wcfTracker.StartThread();
 			Harmony harmony = new Harmony("net.dfgHiatus.Neos-WCFace-Integration");
 			harmony.PatchAll();
 		}
@@ -31,15 +32,24 @@ namespace Neos_WCFace_Integration
 				try
 				{
 					WCFaceEyeInputDevice wsfEye = new WCFaceEyeInputDevice();
-					WCFaceFaceInputDevice wsfFace = new WCFaceFaceInputDevice();
 					Debug("WCFace Eye Module: " + wsfEye.ToString());
-					Debug("WCFace Face Module: " + wsfFace.ToString());
 					__instance.RegisterInputDriver(wsfEye);
+				}
+				catch
+				{
+					Warn("WCFace Eye failed to initiallize.");
+					throw;
+				}
+
+				try
+				{
+					WCFaceFaceInputDevice wsfFace = new WCFaceFaceInputDevice();
+					Debug("WCFace Face Module: " + wsfFace.ToString());
 					__instance.RegisterInputDriver(wsfFace);
 				}
 				catch
 				{
-					Warn("WCFace failed to initiallize.");
+					Warn("WCFace Mouth failed to initiallize.");
 					throw;
 				}
 			}
@@ -56,20 +66,17 @@ namespace Neos_WCFace_Integration
 			public float Alpha = 2f;
 			public float Beta = 2f;
 
-			public void CollectDeviceInfos(BaseX.DataTreeList list) // (dmx) do this later ... this should be fine
+			public void CollectDeviceInfos(BaseX.DataTreeList list)
 			{
 				DataTreeDictionary EyeDataTreeDictionary = new DataTreeDictionary();
 				EyeDataTreeDictionary.Add("Name", "WCFace Eye Tracking");
 				EyeDataTreeDictionary.Add("Type", "Eye Tracking");
-				EyeDataTreeDictionary.Add("Model", "Webcamera");
+				EyeDataTreeDictionary.Add("Model", "Webcamera-1");
 				list.Add(EyeDataTreeDictionary);
 			}
 
 			public void RegisterInputs(InputInterface inputInterface)
 			{
-				wcfTracker = new WCFace.MainWCFT();
-				wcfTracker.Initialize();
-				wcfTracker.StartThread();
 				eyes = new Eyes(inputInterface, "WCFace Eye Tracking");
 			}
 
@@ -142,7 +149,7 @@ namespace Neos_WCFace_Integration
 				DataTreeDictionary MouthDataTreeDictionary = new DataTreeDictionary();
 				MouthDataTreeDictionary.Add("Name", "WCFace Face Tracking");
 				MouthDataTreeDictionary.Add("Type", "Face Tracking");
-				MouthDataTreeDictionary.Add("Model", "Webcamera");
+				MouthDataTreeDictionary.Add("Model", "Webcamera-2");
 				list.Add(MouthDataTreeDictionary);
 			}
 
@@ -153,16 +160,11 @@ namespace Neos_WCFace_Integration
 
 			public void UpdateInputs(float deltaTime)
 			{
-				// Eye updates last data
 				// This should be active only in screen mode
-				mouth.IsDeviceActive = !Engine.Current.InputInterface.VR_Active;
+				mouth.IsDeviceActive = Engine.Current.InputInterface.VR_Active;
 				mouth.IsTracking = wcfTracker.lastWCFTData.IsFaceTracking;
-				mouth.JawOpen = wcfTracker.lastWCFTData.MouthOpen;
-				mouth.MouthLeftSmileFrown = MathX.Clamp01(wcfTracker.lastWCFTData.MouthWide);
-				mouth.MouthRightSmileFrown = MathX.Clamp01(wcfTracker.lastWCFTData.MouthWide);
-
-				// Dummy mouth info
 				mouth.Jaw = EmptyF3;
+				mouth.JawOpen = wcfTracker.lastWCFTData.MouthOpen;
 				mouth.Tongue = EmptyF3;
 				mouth.TongueRoll = 0f;
 				mouth.LipUpperLeftRaise = 0f;
@@ -171,12 +173,15 @@ namespace Neos_WCFace_Integration
 				mouth.LipLowerRightRaise = 0f;
 				mouth.LipUpperHorizontal = 0f;
 				mouth.LipLowerHorizontal = 0f;
+				mouth.MouthLeftSmileFrown = MathX.Clamp01(wcfTracker.lastWCFTData.MouthWide);
+				mouth.MouthRightSmileFrown = MathX.Clamp01(wcfTracker.lastWCFTData.MouthWide);
 				mouth.MouthPout = 0f;
 				mouth.LipTopOverturn = 0f;
 				mouth.LipBottomOverturn = 0f;
 				mouth.LipTopOverUnder = 0f;
 				mouth.LipBottomOverUnder = 0f;
 				mouth.CheekLeftPuffSuck = 0f;
+				mouth.CheekRightPuffSuck = 0f;
 			}
 		}
 	}
