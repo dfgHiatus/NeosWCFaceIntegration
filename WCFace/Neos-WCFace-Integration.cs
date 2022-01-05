@@ -59,8 +59,6 @@ namespace Neos_WCFace_Integration
 		{
 			public Eyes eyes;
 			public int UpdateOrder => 100;
-			public float3 EmptyF3 = new float3();
-			public floatQ EmptyFQ = new floatQ();
 
 			// Both of these will need tweaking depending on user eye swing
 			public float Alpha = 2f;
@@ -127,13 +125,13 @@ namespace Neos_WCFace_Integration
 						MathX.Average(MathX.Tan(Alpha * wcfTracker.lastWCFTData.LookLeftRight), MathX.Tan(Alpha * wcfTracker.lastWCFTData.LookLeftRight)),
 						1f).Normalized;
 
-				eyes.LeftEye.RawPosition = EmptyF3;
-				eyes.RightEye.RawPosition = EmptyF3;
-				eyes.CombinedEye.RawPosition = EmptyF3;
+				eyes.LeftEye.RawPosition = float3.Zero;
+				eyes.RightEye.RawPosition = float3.Zero;
+				eyes.CombinedEye.RawPosition = float3.Zero;
 
-				eyes.LeftEye.RawRotation = EmptyFQ;
-				eyes.RightEye.RawRotation = EmptyFQ;
-				eyes.CombinedEye.RawRotation = EmptyFQ;
+				eyes.LeftEye.RawRotation = floatQ.Identity;
+				eyes.RightEye.RawRotation = floatQ.Identity;
+				eyes.CombinedEye.RawRotation = floatQ.Identity;
 			}
 		}
 
@@ -141,8 +139,6 @@ namespace Neos_WCFace_Integration
 		{
 			public Mouth mouth;
 			public int UpdateOrder => 100;
-			public float3 EmptyF3 = new float3();
-			public floatQ EmptyFQ = new floatQ();
 
 			public void CollectDeviceInfos(BaseX.DataTreeList list)
 			{
@@ -163,9 +159,9 @@ namespace Neos_WCFace_Integration
 				// This should be active only in screen mode
 				mouth.IsDeviceActive = Engine.Current.InputInterface.VR_Active;
 				mouth.IsTracking = wcfTracker.lastWCFTData.IsFaceTracking;
-				mouth.Jaw = EmptyF3;
+				mouth.Jaw = float3.Zero;
 				mouth.JawOpen = wcfTracker.lastWCFTData.MouthOpen;
-				mouth.Tongue = EmptyF3;
+				mouth.Tongue = float3.Zero;
 				mouth.TongueRoll = 0f;
 				mouth.LipUpperLeftRaise = 0f;
 				mouth.LipUpperRightRaise = 0f;
