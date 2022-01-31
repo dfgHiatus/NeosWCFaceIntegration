@@ -31,34 +31,33 @@ namespace Neos_WCFace_Integration
 			{
 				try
 				{
-					WCFaceEyeInputDevice wsfEye = new WCFaceEyeInputDevice();
-					Debug("WCFace Eye Module: " + wsfEye.ToString());
-					__instance.RegisterInputDriver(wsfEye);
-				}
-				catch
-				{
-					Warn("WCFace Eye failed to initiallize.");
-					throw;
-				}
-
-				try
-				{
-					WCFaceFaceInputDevice wsfFace = new WCFaceFaceInputDevice();
-					Debug("WCFace Face Module: " + wsfFace.ToString());
+					WCFaceInputDevice wsfFace = new WCFaceInputDevice();
+					Debug("WCFace Module: " + wsfFace.ToString());
 					__instance.RegisterInputDriver(wsfFace);
 				}
 				catch
 				{
-					Warn("WCFace Mouth failed to initiallize.");
-					throw;
+					Warn("WCFace failed to initiallize.");
 				}
 			}
 		}
 
-		public class WCFaceEyeInputDevice : IInputDriver
+		[HarmonyPatch(typeof(Engine), "Shutdown")]
+		public class ShutdownPatch
+		{
+			public static bool Prefix()
+			{
+				wcfTracker.Teardown();
+				return true;
+			}
+		}
+
+		public class WCFaceInputDevice : IInputDriver
 		{
 			public Eyes eyes;
+			public Mouth mouth;
 			public int UpdateOrder => 100;
+			public float timeStamp = 0f;
 
 			// Both of these will need tweaking depending on user eye swing
 			public float Alpha = 2f;
@@ -71,19 +70,23 @@ namespace Neos_WCFace_Integration
 				EyeDataTreeDictionary.Add("Type", "Eye Tracking");
 				EyeDataTreeDictionary.Add("Model", "Webcamera-1");
 				list.Add(EyeDataTreeDictionary);
+
+				DataTreeDictionary MouthDataTreeDictionary = new DataTreeDictionary();
+				MouthDataTreeDictionary.Add("Name", "WCFace Face Tracking");
+				MouthDataTreeDictionary.Add("Type", "Face Tracking");
+				MouthDataTreeDictionary.Add("Model", "Webcamera-2");
+				list.Add(MouthDataTreeDictionary);
 			}
 
 			public void RegisterInputs(InputInterface inputInterface)
 			{
 				eyes = new Eyes(inputInterface, "WCFace Eye Tracking");
+				mouth = new Mouth(inputInterface, "WCFace Mouth Tracking");
 			}
 
 			public void UpdateInputs(float deltaTime)
 			{
-				// This *should* be active at all times
 				eyes.IsDeviceActive = !Engine.Current.InputInterface.VR_Active;
-
-				// Work only in desktop mode ... 
 				eyes.IsEyeTrackingActive = !Engine.Current.InputInterface.VR_Active;
 
 				eyes.LeftEye.IsTracking = wcfTracker.lastWCFTData.IsFaceTracking;
@@ -132,32 +135,11 @@ namespace Neos_WCFace_Integration
 				eyes.LeftEye.RawRotation = floatQ.Identity;
 				eyes.RightEye.RawRotation = floatQ.Identity;
 				eyes.CombinedEye.RawRotation = floatQ.Identity;
-			}
-		}
 
-		public class WCFaceFaceInputDevice : IInputDriver
-		{
-			public Mouth mouth;
-			public int UpdateOrder => 100;
+				eyes.Timestamp = timeStamp;
+				timeStamp += deltaTime;
 
-			public void CollectDeviceInfos(BaseX.DataTreeList list)
-			{
-				DataTreeDictionary MouthDataTreeDictionary = new DataTreeDictionary();
-				MouthDataTreeDictionary.Add("Name", "WCFace Face Tracking");
-				MouthDataTreeDictionary.Add("Type", "Face Tracking");
-				MouthDataTreeDictionary.Add("Model", "Webcamera-2");
-				list.Add(MouthDataTreeDictionary);
-			}
-
-			public void RegisterInputs(InputInterface inputInterface)
-			{
-				mouth = new Mouth(inputInterface, "WCFace Mouth Tracking");
-			}
-
-			public void UpdateInputs(float deltaTime)
-			{
-				// This should be active only in screen mode
-				mouth.IsDeviceActive = Engine.Current.InputInterface.VR_Active;
+				mouth.IsDeviceActive = !Engine.Current.InputInterface.VR_Active;
 				mouth.IsTracking = wcfTracker.lastWCFTData.IsFaceTracking;
 				mouth.Jaw = float3.Zero;
 				mouth.JawOpen = wcfTracker.lastWCFTData.MouthOpen;
@@ -178,9 +160,14 @@ namespace Neos_WCFace_Integration
 				mouth.LipBottomOverUnder = 0f;
 				mouth.CheekLeftPuffSuck = 0f;
 				mouth.CheekRightPuffSuck = 0f;
+
+				/*                Debug(string.Format("DeviceActive: {0} isTracking: {1} JawOpen {2} LeftSmileFrown {3} RightSmileFrown {4}",
+									mouth.IsDeviceActive,
+									mouth.IsTracking,
+									mouth.JawOpen,
+									mouth.MouthLeftSmileFrown,
+									mouth.MouthRightSmileFrown));*/
 			}
 		}
 	}
-
-	
 }

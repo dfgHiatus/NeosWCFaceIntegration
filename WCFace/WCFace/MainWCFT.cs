@@ -2,9 +2,6 @@
 using System.Collections.Generic;
 using System.Threading;
 using WebSocketSharp;
-using HarmonyLib;
-using NeosModLoader;
-using FrooxEngine;
 using BaseX;
 
 namespace WCFace
